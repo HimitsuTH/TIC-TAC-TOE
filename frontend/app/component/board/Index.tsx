@@ -1,41 +1,40 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function calculateWinner(squares: any, boardSize: number) {
   const lines: any = [];
 
   // Generate winning combinations for rows
-  //   for (let row = 0; row < boardSize; row++) {
-  //     const line: any = [];
-  //     for (let col = 0, i = row; col < boardSize; col++) {
-  //       line.push(row * boardSize + col);
-  //     }
-  //     lines.push(line);
-  //   }
+  for (let row = 0; row < boardSize; row++) {
+    const line: any = [];
+    for (let col = 0, i = row; col < boardSize; col++) {
+      line.push(row * boardSize + col);
+    }
+    lines.push(line);
+  }
 
   // Generate winning combinations for columns
-  //   for (let col = 0; col < boardSize; col++) {
-  //     const line: any = [];
-  //     for (let row = 0; row < boardSize; row++) {
-  //       line.push(row * boardSize + col);
-  //     }
-  //     lines.push(line);
-  //   }
+  for (let col = 0; col < boardSize; col++) {
+    const line: any = [];
+    for (let row = 0; row < boardSize; row++) {
+      line.push(row * boardSize + col);
+    }
+    lines.push(line);
+  }
 
-  //   console.log("columns", lines);
+  // console.log("columns", lines);
 
   // Generate winning combinations for diagonals (top-left to bottom-right)
 
-
-    for (let row = 0; row <= boardSize - boardSize; row++) {
-      const line: any = [];
-      for (let col = 0, i = 0; col < boardSize; col++) {
-        line.push((row + i) * boardSize + col);
-        i++
-      }
-      lines.push(line);
+  for (let row = 0; row <= boardSize - boardSize; row++) {
+    const line: any = [];
+    for (let col = 0, i = 0; col < boardSize; col++) {
+      line.push((row + i) * boardSize + col);
+      i++;
     }
-    console.log("top-left to bottom-right", lines);
+    lines.push(line);
+  }
+  // console.log("top-left to bottom-right", lines);
 
   // Generate winning combinations for diagonals (bottom-left to top-right)
 
@@ -43,23 +42,26 @@ function calculateWinner(squares: any, boardSize: number) {
     const line: any = [];
     for (let col = 0, i = 0; col < boardSize; col++) {
       line.push((row - i) * boardSize + col);
-      i++
+      i++;
     }
     lines.push(line);
   }
-    console.log("bottom-left to top-right", lines);
+  // console.log("bottom-left to top-right", lines);
 
   // Check for a winner in each line
-  // for (const line of lines) {
-  //   const [a, b, c] = line.sort((a, b) => a - b);
-  //   if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-  //     return {
-  //       winner: squares[a],
-  //       lineWin: `${a} : ${b} : ${c}`,
-  //       lineIndex: [a, b, c],
-  //     };
-  //   }
-  // }
+  for (const line of lines) {
+    if (
+      line.every(
+        (index: any) => squares[index] === squares[line[0]] && squares[index]
+      )
+    ) {
+      return {
+        winner: squares[line[0]],
+        lineWin: line.join(" : "),
+        lineIndex: line,
+      };
+    }
+  }
 
   return null;
 }
@@ -71,12 +73,13 @@ const Board = (props: any) => {
 
   const [board, setBoard] = useState(Array(size * size).fill(null));
   const [xIsNext, setXIsNext] = useState(true);
+  const [playerWin, setPlayerWin] = useState("");
 
   const handleClick = (index: number) => {
-    console.log(index);
-    if (board[index] || calculateWinner(board, size)) {
+    if (board[index] || calculateWinner(board, size)?.winner) {
       return;
     }
+
     const newBoard = board;
     newBoard[index] = xIsNext ? "X" : "O";
 
@@ -96,11 +99,23 @@ const Board = (props: any) => {
     </button>
   );
 
+  //Check if there is a winner yet. 
+  const winnerData = calculateWinner(board, size)?.winner;
+
+  useEffect(() => {
+    winnerData == "X"
+      ? setPlayerWin(player_1)
+      : winnerData !== undefined
+      ? setPlayerWin(player_2)
+      : setPlayerWin("");
+  }, [winnerData]);
+
   return (
     <div className="board">
+      {playerWin && <h1>{playerWin}</h1>}
       <div className=" mb-2">
-        <h1>Player 1 : {player_1}</h1>
-        <h1>Player 2 : {player_2}</h1>
+        <h1>Player 1 [X] : {player_1}</h1>
+        <h1>Player 2 [O] : {player_2}</h1>
       </div>
       {Array(size)
         .fill(null)
