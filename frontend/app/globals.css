@@ -30,3 +30,9 @@
   color: rgb(0, 150, 55);
   font-weight: bold;
 }
+
+.square.X.active , .square.O.active {
+  transition: all 500ms;
+  background-color: 	#424549;
+  color: white;
+}

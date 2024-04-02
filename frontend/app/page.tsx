@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       {showBoard ? (
-        <Board size={Number(inputSize)} player_1={player1} player_2={player2} useBot={useBot} setShowBoard={setShowBoard}/>
+        <Board size={Number(inputSize)} player_1={player1} player_2={player2} useBot={useBot} setShowBoard={setShowBoard} setInputSize={setInputSize}/>
       ) : (
         <Modal
           setInputSize={setInputSize}

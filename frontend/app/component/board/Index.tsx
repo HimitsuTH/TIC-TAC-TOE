@@ -1,9 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 import { calculateWinner } from "../../libs/untils";
+import HistoryBoard from "./History";
 
 const Board = (props: any) => {
-  const { size, player_1: p1, player_2: p2, useBot, setShowBoard } = props;
+  const {
+    size,
+    player_1: p1,
+    player_2: p2,
+    useBot,
+    setShowBoard,
+    setInputSize,
+  } = props;
   let player_1 = p1;
   let player_2 = p2 || "Bot";
   let bot = useBot;
@@ -11,17 +19,29 @@ const Board = (props: any) => {
   const [board, setBoard] = useState(Array(size * size).fill(null));
   const [xIsNext, setXIsNext] = useState(true);
   const [messageWin, setMessageWin] = useState("");
+  const [history, setHistory] = useState<any[]>([]);
 
   const handleClick = (index: number) => {
     if (board[index] || calculateWinner(board, size)?.winner) {
       return;
     }
-
     const newBoard = board;
+    const col = Math.floor(index % size),
+      row = Math.floor(index / size),
+      //col and row where the latest click happened
+      clickPosition = "( row: " + row + ", col: " + col + " )";
 
     if (bot) {
       newBoard[index] = "X";
-      setBoard(newBoard);
+      setHistory((history: any) => [
+        ...history,
+        {
+          player: newBoard[index],
+          move: index,
+          position: clickPosition,
+          boardHistory: newBoard,
+        },
+      ]);
 
       const botMove = newBoard
         .map((item, i) => {
@@ -32,29 +52,57 @@ const Board = (props: any) => {
         })
         .filter((box) => box.item === null);
 
-      if (botMove.length > 0 && !calculateWinner(newBoard, size)?.winner) {
+      // The bot checks the box.
+      if (botMove.length > 0) {
+        if (calculateWinner(newBoard, size)?.winner) {
+          return;
+        }
         let randomBox =
           botMove[Math.floor(Math.random() * botMove.length)].index;
         newBoard[randomBox] = "O";
-        setBoard(newBoard);
+        const col = Math.floor(randomBox % size),
+          row = Math.floor(randomBox / size),
+          //col and row where the latest click happened
+          clickPosition = "( row: " + row + ", col: " + col + " )";
+
+        setXIsNext(false);
+        setHistory((history: any) => [
+          ...history,
+          {
+            player: newBoard[randomBox],
+            move: index,
+            position: clickPosition,
+            boardHistory: newBoard,
+          },
+        ]);
       }
 
-      console.log({ botMove });
+      setTimeout(() => {
+        setXIsNext(true);
+      }, 200);
     } else {
       newBoard[index] = xIsNext ? "X" : "O";
+      setXIsNext(!xIsNext);
+      setHistory((history: any) => [
+        ...history,
+        {
+          player: newBoard[index],
+          move: index,
+          boardHistory: newBoard,
+        },
+      ]);
     }
 
     if (newBoard.every((box) => box !== null)) {
       setMessageWin("The game is tied.");
       return;
     }
-
-    setXIsNext((prev) => !prev);
+    setBoard(newBoard);
   };
 
   const renderSquare = (index: number) => (
     <button
-      className={` border-2 cursor-pointer w-10 h-10 ${
+      className={` square border-2 cursor-pointer w-10 h-10 ${
         board[index] == "X" ? "X" : board[index] == "O" ? "O" : ""
       }`}
       onClick={() => handleClick(index)}
@@ -67,36 +115,57 @@ const Board = (props: any) => {
   const handleResetGame = () => {
     setBoard(Array(size * size).fill(null));
     setMessageWin("");
+    setXIsNext(true);
+    setHistory([]);
   };
 
   const handleBackToHome = () => {
     handleResetGame();
     setShowBoard(false);
+    setInputSize(3);
   };
 
   //Check if there is a winner yet.
-  const winnerData = calculateWinner(board, size)?.winner;
+  const winnerData = calculateWinner(board, size);
 
   useEffect(() => {
-    winnerData == "X"
-      ? setMessageWin(`Player ${player_1} Win`)
-      : winnerData !== undefined
-      ? setMessageWin(`Player ${player_2} Win`)
-      : setMessageWin("");
-  }, [winnerData]);
+    if (winnerData?.winner) {
+      winnerData?.winner == "X"
+        ? setMessageWin(`Player ${player_1} Win !!!`)
+        : winnerData !== undefined
+        ? setMessageWin(
+            `${player_2 === "Bot" ? player_2 : "Player " + player_2} Win !!!`
+          )
+        : setMessageWin("");
+      const squares = document.querySelectorAll(".square");
+      console.log(winnerData?.line);
+      winnerData?.line.forEach((box: any) => {
+        squares[box].classList.add("active");
+        console.log(box);
+      });
+    }
+  }, [winnerData?.winner]);
 
   return (
     <div className="container flex flex-col justify-center items-center">
       {messageWin && <h1 className=" absolute top-6 text-xl">{messageWin}</h1>}
-      <div className=" mb-2 absolute top-6 left-2 ">
-        <h1 className=" bg-gray-200 p-2 rounded-md select-none mb-2">
+      <div className=" top-6 left-2 static flex justify-center items-center gap-2 ">
+        <h1
+          className={`bg-gray-200 p-2 rounded-md select-none transition-all  ${
+            xIsNext && "bg-slate-800 text-white"
+          }`}
+        >
           Player 1 [X] : {player_1}
         </h1>
-        <h1 className=" bg-gray-200 p-2 rounded-md select-none">
+        <h1
+          className={`bg-gray-200 p-2 rounded-md select-none transition-all ${
+            !xIsNext && "bg-slate-800 text-white"
+          }`}
+        >
           Player 2 [O] : {player_2}
         </h1>
       </div>
-      <div className="board">
+      <div className="board mt-10">
         {Array(size)
           .fill(null)
           .map((_, row) => (
@@ -107,20 +176,21 @@ const Board = (props: any) => {
             </div>
           ))}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-10">
         <button
-          className=" border-2 p-1 rounded-md hover:bg-gray-500 hover:text-white transition-all"
+          className=" border-2 py-1 px-3 rounded-md hover:bg-gray-500 hover:text-white transition-all"
           onClick={() => handleResetGame()}
         >
           Reset
         </button>
         <button
-          className=" border-2 p-1 rounded-md hover:bg-gray-500 hover:text-white transition-all"
+          className=" border-2 py-1 px-3 rounded-md hover:bg-gray-500 hover:text-white transition-all"
           onClick={() => handleBackToHome()}
         >
           Back
         </button>
       </div>
+      <HistoryBoard history={history} />
     </div>
   );
 };
