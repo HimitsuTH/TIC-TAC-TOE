@@ -1,20 +1,14 @@
 ## Getting Started
 
-First, run the development server:
-
 ```bash
 git clone https://github.com/HimitsuTH/TIC-TAC-TOE.git
 
 #cd to folder frontend
 cd frontend
+#install node module
+npm install 
 #run this project
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 
 ```
 

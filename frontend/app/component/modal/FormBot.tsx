@@ -1,12 +1,10 @@
-"use client";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { GameSetting, GameSettingSchema } from "../libs/types";
+import { GameSetting, GameSettingSchema } from "../../libs/types";
 
-const InputModal = (props: any) => {
-  const { setInputSize, setShowBoard, setPlayer1, setPlayer2 } = props;
+const FormBot = (props: any) => {
+  const { setShowBoard, setPlayer1, setUseBot ,setPlayer2 } = props.setting;
 
   const {
     register,
@@ -17,14 +15,14 @@ const InputModal = (props: any) => {
   });
 
   const onSubmit = (body: GameSetting) => {
-    const { size, player1, player2 } = body;
+    const { player1 } = body;
     try {
-      //set board size
-      setInputSize(size);
-
       //set name player.
       setPlayer1(player1);
-      setPlayer2(player2);
+      setPlayer2("");
+
+      //set play with bot
+      setUseBot(true);
 
       //close input modal
       setShowBoard(true);
@@ -34,9 +32,10 @@ const InputModal = (props: any) => {
   };
 
   return (
-    <div className=" flex flex-col justify-center items-center border-2 p-4">
-      <h1 className=" font-bold text-2xl  p-3 rounded-md">Tic Tac Toe</h1>
-
+    <div>
+      <h1 className=" text-center mb-2 font-bold text-gray-500">
+        Play with Bot 3X3
+      </h1>
       <form
         className=" flex gap-4  flex-col "
         onSubmit={handleSubmit(onSubmit)}
@@ -52,30 +51,6 @@ const InputModal = (props: any) => {
             <p className="text-red-500">{`${errors.player1.message}`}</p>
           )}
         </div>
-        <div>
-          <input
-            type="text"
-            {...register("player2")}
-            className=" p-3 border-2 "
-            placeholder="Enter player 2 name."
-          />
-          {errors.player2 && (
-            <p className="text-red-500">{`${errors.player2.message}`}</p>
-          )}
-        </div>
-
-        <div>
-          <input
-            {...register("size", { valueAsNumber: true })}
-            type="number"
-            className=" p-3 border-2 "
-            placeholder="Enter size to play."
-          />
-          {errors.size && (
-            <p className="text-red-500">{`${errors.size.message}`}</p>
-          )}
-        </div>
-
         <button
           className=" border-2 p-3 flex justify-center items-center"
           disabled={isSubmitting}
@@ -88,4 +63,4 @@ const InputModal = (props: any) => {
   );
 };
 
-export default InputModal;
+export default FormBot;
