@@ -58,7 +58,7 @@ const Board = (props: any) => {
       },
     ]);
     if (newBoard.every((box: any) => typeof box !== "number")) {
-      setMessageWin("The game is tied.");
+      setMessageWin("The game is Draw.");
       return;
     }
     setBoard(newBoard);
