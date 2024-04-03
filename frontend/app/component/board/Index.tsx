@@ -84,10 +84,13 @@ const Board = (props: any) => {
       if (!botMove.length || checkWin(board)?.winner) {
         return;
       } else {
+        // # EASY MODE
         // let randomBox = botMove[Math.floor(Math.random() * botMove.length)];
-        onTurn(minimax(board, AI_PLAYER).index, AI_PLAYER);
         // onTurn(randomBox, AI_PLAYER);
         setTimeout(() => {
+          // # NOMAL MODE
+          console.log(minimax(board, AI_PLAYER))
+          onTurn(minimax(board, AI_PLAYER).index, AI_PLAYER);
           setXIsNext(true);
         }, 200);
       }
