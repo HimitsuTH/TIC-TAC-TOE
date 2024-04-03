@@ -1,5 +1,6 @@
 import { useState } from "react";
-const HistoryBoard = ({ history }:any) => {
+
+const HistoryBoard = ({ history }: any) => {
   const [active, setActive] = useState(null);
 
   return (
@@ -12,7 +13,7 @@ const HistoryBoard = ({ history }:any) => {
         >
           Game start
         </ol>
-        {history?.map((h:any, i:any) => (
+        {history?.map((h: any, i: any) => (
           <ol
             key={i}
             className={`history_ flex gap-3 cursor-pointer  items-center text-xs md:text-sm border mx-2 p-2  hover:bg-slate-800 hover:text-white ${

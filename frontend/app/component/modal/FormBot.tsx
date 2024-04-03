@@ -52,7 +52,7 @@ const FormBot = (props: any) => {
           )}
         </div>
         <button
-          className=" border-2 p-3 flex justify-center items-center"
+          className=" font-bold border-2 p-2 flex justify-center items-center hover:bg-gray-600 hover:text-white transition-all rounded-md"
           disabled={isSubmitting}
           type="submit"
         >

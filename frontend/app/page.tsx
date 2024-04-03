@@ -11,8 +11,6 @@ export default function Home() {
   const [player2, setPlayer2] = useState("");
   const [useBot, setUseBot] = useState(false);
 
-
-  console.log(showBoard ? "test" : "no");
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       {showBoard ? (

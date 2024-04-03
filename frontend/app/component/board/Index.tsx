@@ -12,93 +12,149 @@ const Board = (props: any) => {
     setShowBoard,
     setInputSize,
   } = props;
+
+  // Setting Player
   let player_1 = p1;
   let player_2 = p2 || "Bot";
+
   let bot = useBot;
 
-  const [board, setBoard] = useState(Array(size * size).fill(null));
+  // MARK WHEN PLAYER (PLAY WITH AI)
+  const HUMAN_PLAYER = "X";
+  const AI_PLAYER = "O";
+
+  // const [board, setBoard] = useState(Array(size * size).fill(null));
+  const [board, setBoard] = useState<any>(
+    Array.from(Array(size * size).keys())
+  );
+
   const [xIsNext, setXIsNext] = useState(true);
   const [messageWin, setMessageWin] = useState("");
   const [history, setHistory] = useState<any[]>([]);
 
-  const handleClick = (index: number) => {
-    if (board[index] || calculateWinner(board, size)?.winner) {
-      return;
-    }
+  // FUNCTION MARK THE BOX
+  const onTurn = (squareId: number, player: any) => {
     const newBoard = board;
-    const col = Math.floor(index % size),
-      row = Math.floor(index / size),
+    const col = Math.floor(squareId % size),
+      row = Math.floor(squareId / size),
       //col and row where the latest click happened
       clickPosition = "( row: " + row + ", col: " + col + " )";
 
     if (bot) {
-      newBoard[index] = "X";
-      setHistory((history: any) => [
-        ...history,
-        {
-          player: newBoard[index],
-          move: index,
-          position: clickPosition,
-          boardHistory: newBoard,
-        },
-      ]);
-
-      const botMove = newBoard
-        .map((item, i) => {
-          return {
-            item,
-            index: i,
-          };
-        })
-        .filter((box) => box.item === null);
-
-      // The bot checks the box.
-      if (botMove.length > 0) {
-        if (calculateWinner(newBoard, size)?.winner) {
-          return;
-        }
-        let randomBox =
-          botMove[Math.floor(Math.random() * botMove.length)].index;
-        newBoard[randomBox] = "O";
-        const col = Math.floor(randomBox % size),
-          row = Math.floor(randomBox / size),
-          //col and row where the latest click happened
-          clickPosition = "( row: " + row + ", col: " + col + " )";
-
-        setXIsNext(false);
-        setHistory((history: any) => [
-          ...history,
-          {
-            player: newBoard[randomBox],
-            move: index,
-            position: clickPosition,
-            boardHistory: newBoard,
-          },
-        ]);
-      }
-
-      setTimeout(() => {
-        setXIsNext(true);
-      }, 200);
+      // player === X OR O
+      newBoard[squareId] = player;
     } else {
-      newBoard[index] = xIsNext ? "X" : "O";
-      setXIsNext(!xIsNext);
-      setHistory((history: any) => [
-        ...history,
-        {
-          player: newBoard[index],
-          move: index,
-          boardHistory: newBoard,
-        },
-      ]);
+      // player === boolean
+      newBoard[squareId] = player ? "X" : "O";
     }
 
-    if (newBoard.every((box) => box !== null)) {
+    setHistory((history: any) => [
+      ...history,
+      {
+        player: newBoard[squareId],
+        move: squareId,
+        position: clickPosition,
+        boardHistory: newBoard,
+      },
+    ]);
+    if (newBoard.every((box: any) => typeof box !== "number")) {
       setMessageWin("The game is tied.");
       return;
     }
     setBoard(newBoard);
   };
+
+  // FIND THE BOX DON'T HAVE MARK
+  function emptySquares() {
+    return board.filter((item: any) => typeof item === "number");
+  }
+
+  const handleClick = (index: number) => {
+    if (
+      (board[index] && typeof board[index] !== "number") ||
+      checkWin(board)?.winner
+    ) {
+      return;
+    }
+    if (bot) {
+      onTurn(index, "X");
+      const botMove = emptySquares();
+      setXIsNext(false);
+      // if (!botMove.length || checkWin(board)?.winner) {
+      if (!botMove.length || checkWin(board)?.winner) {
+        return;
+      } else {
+        // let randomBox = botMove[Math.floor(Math.random() * botMove.length)];
+        onTurn(minimax(board, AI_PLAYER).index, AI_PLAYER);
+        // onTurn(randomBox, AI_PLAYER);
+        setTimeout(() => {
+          setXIsNext(true);
+        }, 200);
+      }
+    } else {
+      onTurn(index, xIsNext);
+      setXIsNext(!xIsNext);
+    }
+  };
+
+  // CHECK WINNER
+  const checkWin = (_board: any) => {
+    const winnerData = calculateWinner(_board, size);
+    return winnerData;
+  };
+
+  // credit minimax code https://github.com/adeelibr/tic-tac-toe-ai-vanilla-js/blob/master/simple/smartAi.js#L115
+  function minimax(newBoard: any, player: string) {
+    let availableSpots = emptySquares();
+    if (checkWin(newBoard)?.winner === HUMAN_PLAYER) {
+      return { score: -10 };
+    } else if (checkWin(newBoard)?.winner === AI_PLAYER) {
+      return { score: 10 };
+    } else if (availableSpots.length === 0) {
+      return { score: 0 };
+    }
+
+    let moves: any = [];
+
+    for (let i = 0; i < availableSpots.length; i++) {
+      let move: any = {};
+      move.index = newBoard[availableSpots[i]];
+      newBoard[availableSpots[i]] = player;
+
+      if (player === AI_PLAYER) {
+        let result = minimax(newBoard, HUMAN_PLAYER);
+        move.score = result.score;
+      } else {
+        let result = minimax(newBoard, AI_PLAYER);
+        move.score = result.score;
+      } // end of if/else block
+
+      newBoard[availableSpots[i]] = move.index;
+      moves.push(move);
+    } // end of for look
+
+    let bestMove: any;
+
+    if (player === AI_PLAYER) {
+      let bestScore = -10000;
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i].score > bestScore) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
+      } // end of for loop
+    } else {
+      let bestScore = 10000;
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i].score < bestScore) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
+      }
+    }
+
+    return moves[bestMove];
+  }
 
   const renderSquare = (index: number) => (
     <button
@@ -108,12 +164,12 @@ const Board = (props: any) => {
       onClick={() => handleClick(index)}
       key={index}
     >
-      {board[index] ? board[index] : ""}
+      {board[index] === "X" || board[index] === "O" ? board[index] : ""}
     </button>
   );
 
   const handleResetGame = () => {
-    setBoard(Array(size * size).fill(null));
+    setBoard(Array.from(Array(size * size).keys()));
     setMessageWin("");
     setXIsNext(true);
     setHistory([]);
@@ -138,10 +194,10 @@ const Board = (props: any) => {
           )
         : setMessageWin("");
       const squares = document.querySelectorAll(".square");
-      console.log(winnerData?.line);
+      // console.log(winnerData?.line);
       winnerData?.line.forEach((box: any) => {
         squares[box].classList.add("active");
-        console.log(box);
+        // console.log(box);
       });
     }
   }, [winnerData?.winner]);
