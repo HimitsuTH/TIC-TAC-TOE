@@ -3,6 +3,8 @@
 ```bash
 git clone https://github.com/HimitsuTH/TIC-TAC-TOE.git
 
+# Go into the repository
+$ cd TIC-TAC-TOE
 #cd to folder frontend
 cd frontend
 #install node module
